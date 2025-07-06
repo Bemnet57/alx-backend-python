@@ -32,15 +32,30 @@ def stream_users_in_batches(batch_size):
         conn.close()
 
 
+# def batch_processing(batch_size):
+#     """
+#     Processes each batch of users, filtering users over age 25.
+#     Yields only users with age > 25.
+#     """
+#     for batch in stream_users_in_batches(batch_size):
+#         for user in batch:
+#             if float(user["age"]) > 25:
+#                 yield user
+
 def batch_processing(batch_size):
     """
-    Processes each batch of users, filtering users over age 25.
-    Yields only users with age > 25.
-    """
+#     Processes each batch of users, filtering users over age 25.
+#     Yields only users with age > 25.
+#     """
+
+
+    filtered = []
     for batch in stream_users_in_batches(batch_size):
         for user in batch:
             if float(user["age"]) > 25:
-                yield user
+                filtered.append(user)
+    return filtered
+
 
 
 
