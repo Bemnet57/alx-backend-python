@@ -1,8 +1,18 @@
 # Python
 __pycache__/
 *.pyc
+
+# Environment Variables
 .env
 
 # Virtual Environments
 .venv/
 env/
+venv/
+
+# VS Code settings (optional but useful)
+.vscode/
+
+# System files (optional)
+.DS_Store
+Thumbs.db
