@@ -8,6 +8,9 @@ from unittest.mock import patch
 from parameterized import parameterized
 from client import GithubOrgClient
 from unittest.mock import PropertyMock
+from client import GithubOrgClient
+from utils import get_json
+
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -29,7 +32,7 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.assert_called_once_with(f"https://api.github.com/orgs/{org_name}")
         self.assertEqual(result, test_payload)
 
-        
+
 class TestGithubOrgClient(unittest.TestCase):
     # ... (previous test methods)
 
@@ -45,4 +48,26 @@ class TestGithubOrgClient(unittest.TestCase):
             result = client._public_repos_url
 
             self.assertEqual(result, test_url)
+
+
+class TestGithubOrgClient(unittest.TestCase):
+    # ... previous methods
+
+    @patch("client.get_json")
+    def test_public_repos(self, mock_get_json):
+        """Test public_repos returns expected repo names"""
+        test_payload = [
+            {"name": "repo1"},
+            {"name": "repo2"},
+            {"name": "repo3"},
+        ]
+        mock_get_json.return_value = test_payload
+
+        with patch.object(GithubOrgClient, "_public_repos_url", return_value="https://fake.url/api") as mock_url:
+            client = GithubOrgClient("testorg")
+            result = client.public_repos()
+
+            self.assertEqual(result, ["repo1", "repo2", "repo3"])
+            mock_url.assert_called_once()
+            mock_get_json.assert_called_once_with("https://fake.url/api")
 
