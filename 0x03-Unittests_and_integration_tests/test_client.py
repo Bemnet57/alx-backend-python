@@ -33,7 +33,7 @@ class TestGithubOrgClient(unittest.TestCase):
             f"https://api.github.com/orgs/{org_name}")
         self.assertEqual(result, test_payload)
 
-    @patch("client.get_json")
+    @patch("client.GithubOrgClient.get_json")  # patch correction
     def test_public_repos(self, mock_get_json):
         """Test public_repos returns expected repo names"""
         test_payload = [
