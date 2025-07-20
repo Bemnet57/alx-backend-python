@@ -66,7 +66,7 @@ class TestGithubOrgClient(unittest.TestCase):
 
         with patch.object(
                 GithubOrgClient, "_public_repos_url",
-                  return_value="https://fake.url/api") as mock_url:
+                return_value="https://fake.url/api") as mock_url:
             client = GithubOrgClient("testorg")
             result = client.public_repos()
 
