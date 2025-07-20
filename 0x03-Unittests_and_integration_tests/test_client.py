@@ -13,6 +13,7 @@ from utils import get_json
 
 
 class TestGithubOrgClient(unittest.TestCase):
+    # ... previous methods
     """Test suite for GithubOrgClient"""
 
     @parameterized.expand([
@@ -31,28 +32,6 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.assert_called_once_with(
             f"https://api.github.com/orgs/{org_name}")
         self.assertEqual(result, test_payload)
-
-
-class TestGithubOrgClient(unittest.TestCase):
-    # ... (previous test methods)
-
-    def test_public_repos_url(self):
-        """Test GithubOrgClient._public_repos_url returns expected repos_url"""
-        test_url = "https://api.github.com/orgs/testorg/repos"
-        payload = {"repos_url": test_url}
-
-        with patch.object(
-                GithubOrgClient, "org", new_callable=PropertyMock) as mock_org:
-            mock_org.return_value = payload
-
-            client = GithubOrgClient("testorg")
-            result = client._public_repos_url
-
-            self.assertEqual(result, test_url)
-
-
-class TestGithubOrgClient(unittest.TestCase):
-    # ... previous methods
 
     @patch("client.get_json")
     def test_public_repos(self, mock_get_json):
