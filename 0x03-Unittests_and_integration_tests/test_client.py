@@ -41,7 +41,8 @@ class TestGithubOrgClient(unittest.TestCase):
         test_url = "https://api.github.com/orgs/testorg/repos"
         payload = {"repos_url": test_url}
 
-        with patch.object(GithubOrgClient, "org", new_callable=PropertyMock) as mock_org:
+        with patch.object(
+                GithubOrgClient, "org", new_callable=PropertyMock) as mock_org:
             mock_org.return_value = payload
 
             client = GithubOrgClient("testorg")
@@ -63,7 +64,8 @@ class TestGithubOrgClient(unittest.TestCase):
         ]
         mock_get_json.return_value = test_payload
 
-        with patch.object(GithubOrgClient, "_public_repos_url", return_value="https://fake.url/api") as mock_url:
+        with patch.object(
+                GithubOrgClient, "_public_repos_url", return_value="https://fake.url/api") as mock_url:
             client = GithubOrgClient("testorg")
             result = client.public_repos()
 
