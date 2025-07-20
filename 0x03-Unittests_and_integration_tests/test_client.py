@@ -10,6 +10,9 @@ from client import GithubOrgClient
 from unittest.mock import PropertyMock
 from client import GithubOrgClient
 from utils import get_json
+import fixtures
+from unittest.mock import patch, MagicMock
+from parameterized import parameterized_class
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -63,3 +66,37 @@ class TestGithubOrgClient(unittest.TestCase):
         """Test has_license returns correct boolean for license match"""
         result = GithubOrgClient.has_license(repo, license_key)
         self.assertEqual(result, expected)
+@parameterized_class([
+    {
+        "org_payload": fixtures.org_payload,
+        "repos_payload": fixtures.repos_payload,
+        "expected_repos": fixtures.expected_repos,
+        "apache2_repos": fixtures.apache2_repos,
+    }
+])
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.get_patcher = patch("requests.get")
+        mock_get = cls.get_patcher.start()
+
+        def side_effect(url):
+            if url.endswith("orgs/google"):
+                return MagicMock(json=lambda: cls.org_payload)
+            elif url.endswith("orgs/google/repos"):
+                return MagicMock(json=lambda: cls.repos_payload)
+            return MagicMock(json=lambda: None)
+
+        mock_get.side_effect = side_effect
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.get_patcher.stop()
+
+    def test_public_repos(self):
+        client = GithubOrgClient("google")
+        self.assertEqual(client.public_repos(), self.expected_repos)
+
+    def test_public_repos_with_license(self):
+        client = GithubOrgClient("google")
+        self.assertEqual(client.public_repos("apache-2.0"), self.apache2_repos)
