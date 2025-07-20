@@ -12,7 +12,6 @@ from client import GithubOrgClient
 from utils import get_json
 
 
-
 class TestGithubOrgClient(unittest.TestCase):
     """Test suite for GithubOrgClient"""
 
