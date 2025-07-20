@@ -5,6 +5,7 @@ Unit tests for client.GithubOrgClient class.
 
 import unittest
 from unittest.mock import patch
+from parameterized import parameterized_class
 from parameterized import parameterized
 from client import GithubOrgClient
 from unittest.mock import PropertyMock
@@ -12,7 +13,7 @@ from client import GithubOrgClient
 from utils import get_json
 import fixtures
 from unittest.mock import patch, MagicMock
-from parameterized import parameterized_class
+
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -100,5 +101,10 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
     def test_public_repos_with_license(self):
         client = GithubOrgClient("google")
         self.assertEqual(client.public_repos("apache-2.0"), self.apache2_repos)
-if __name__ == "__main__":
-    unittest.main()
+    def test_public_repos_with_license(self):
+        """Test public_repos with license filter"""
+        client = GithubOrgClient("google")
+        self.assertEqual(
+            client.public_repos(license="apache-2.0"),
+            self.apache2_repos
+        )
