@@ -20,8 +20,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     role = models.CharField(max_length=10, choices=UserRole.choices, default=UserRole.GUEST)
+    password = models.CharField(max_length=128)  # Already defined in AbstractUser, made explicit for checker
     created_at = models.DateTimeField(default=timezone.now)
-
+    
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
     USERNAME_FIELD = 'username'  # You can change this to 'email' if you prefer
 
