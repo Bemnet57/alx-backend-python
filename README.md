@@ -74,7 +74,7 @@ Created a generator `stream_users()` that connects to a MySQL DB and yields rows
 ---
 
 
----
+
 
 ##  Author
 
