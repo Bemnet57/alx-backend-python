@@ -20,7 +20,7 @@ class TestGithubOrgClient(unittest.TestCase):
         ("google",),
         ("abc",),
     ])
-    @patch('client.GithubOrgClient.get_json')  # patch correction
+    @patch("client.get_json")  # patch correction
     def test_org(self, org_name, mock_get_json):
         """Test that GithubOrgClient.org returns the correct payload"""
         test_payload = {"login": org_name, "id": 12345}
@@ -33,7 +33,7 @@ class TestGithubOrgClient(unittest.TestCase):
             f"https://api.github.com/orgs/{org_name}")
         self.assertEqual(result, test_payload)
 
-    @patch("client.GithubOrgClient.get_json")  # patch correction
+    @patch("client.get_json")  # patch correction
     def test_public_repos(self, mock_get_json):
         """Test public_repos returns expected repo names"""
         test_payload = [
@@ -44,8 +44,10 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.return_value = test_payload
 
         with patch.object(
-                GithubOrgClient, "_public_repos_url",
-                return_value="https://fake.url/api") as mock_url:
+            GithubOrgClient, "_public_repos_url",
+            new_callable=PropertyMock
+        ) as mock_url:
+            mock_url.return_value = "https://fake.url/api"
             client = GithubOrgClient("testorg")
             result = client.public_repos()
 
