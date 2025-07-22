@@ -17,26 +17,47 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = UserSerializer(read_only=True)
+    sender_email = serializers.CharField(source='sender.email', read_only=True)
+    message_body = serializers.CharField()
 
     class Meta:
         model = Message
-        fields = [
-            'message_id',
-            'sender',
-            'message_body',
-            'sent_at',
-        ]
+        fields = ['message_id', 'sender_email', 'message_body', 'sent_at']
+
+# class MessageSerializer(serializers.ModelSerializer):
+#     sender = UserSerializer(read_only=True)
+
+#     class Meta:
+#         model = Message
+#         fields = [
+#             'message_id',
+#             'sender',
+#             'message_body',
+#             'sent_at',
+#         ]
 
 class ConversationSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True, read_only=True)
-    messages = MessageSerializer(source='message_set', many=True, read_only=True)
+    messages = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
-        fields = [
-            'conversation_id',
-            'participants',
-            'created_at',
-            'messages',
-        ]
+        fields = ['conversation_id', 'participants', 'created_at', 'messages']
+
+    def get_messages(self, obj):
+        messages = obj.message_set.all().order_by('sent_at')
+        return MessageSerializer(messages, many=True).data
+
+
+# class ConversationSerializer(serializers.ModelSerializer):
+#     participants = UserSerializer(many=True, read_only=True)
+#     messages = MessageSerializer(source='message_set', many=True, read_only=True)
+
+#     class Meta:
+#         model = Conversation
+#         fields = [
+#             'conversation_id',
+#             'participants',
+#             'created_at',
+#             'messages',
+#         ]
