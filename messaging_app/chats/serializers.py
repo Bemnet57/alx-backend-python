@@ -4,17 +4,32 @@ from rest_framework import serializers
 from .models import User, Conversation, Message
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.CharField()
+
+    def validate_email(self, value):
+        if "@" not in value:
+            raise serializers.ValidationError("Invalid email format")
+        return value
+
     class Meta:
         model = User
         fields = [
-            'user_id',
-            'first_name',
-            'last_name',
-            'email',
-            'phone_number',
-            'role',
-            'created_at',
+            'user_id', 'first_name', 'last_name', 'email',
+            'phone_number', 'role', 'created_at'
         ]
+
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = [
+#             'user_id',
+#             'first_name',
+#             'last_name',
+#             'email',
+#             'phone_number',
+#             'role',
+#             'created_at',
+#         ]
 
 class MessageSerializer(serializers.ModelSerializer):
     sender_email = serializers.CharField(source='sender.email', read_only=True)
