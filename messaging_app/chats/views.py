@@ -24,8 +24,9 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
+    # def get_queryset(self):
+    #     return Message.objects.filter(conversation__id=self.kwargs['conversation_pk'])
     def get_queryset(self):
-        return Message.objects.filter(conversation__id=self.kwargs['conversation_pk'])
-
+        return Message.objects.filter(conversation__participants=self.request.user)
     def perform_create(self, serializer):
         serializer.save(sender=self.request.user, conversation_id=self.kwargs['conversation_pk'])
