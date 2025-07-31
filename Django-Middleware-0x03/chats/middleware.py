@@ -6,6 +6,7 @@ from django.http import HttpResponseForbidden
 from django.core.cache import cache
 from django.http import JsonResponse
 from datetime import datetime
+from django.http import JsonResponse
 
 
 class RequestLoggingMiddleware:
@@ -89,3 +90,28 @@ class RateLimitMiddleware:
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
         return request.META.get('REMOTE_ADDR')
+
+
+
+class RolePermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        # Define restricted paths or conditions
+        self.restricted_paths = [
+            '/api/conversations/',  # Example
+            '/api/messages/delete/',  # Example
+        ]
+
+    def __call__(self, request):
+        # Only restrict if the request path matches any restricted endpoint
+        if any(request.path.startswith(path) for path in self.restricted_paths):
+            user = getattr(request, 'user', None)
+            
+            if user is None or not user.is_authenticated:
+                return JsonResponse({"detail": "Authentication required."}, status=401)
+
+            # Check role
+            if getattr(user, 'role', '').lower() not in ['admin', 'moderator']:
+                return JsonResponse({"detail": "Access denied. Admin or moderator role required."}, status=403)
+
+        return self.get_response(request)
