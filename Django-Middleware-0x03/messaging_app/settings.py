@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'chats.middleware.RequestLoggingMiddleware'# added custom middleware
+    'chats.middleware.RestrictAccessByTimeMiddleware', # added custom middleware
 ]
 
 ROOT_URLCONF = 'messaging_app.urls'
