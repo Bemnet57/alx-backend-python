@@ -1,6 +1,12 @@
 # middleware.py
 from datetime import datetime
 import logging
+from datetime import datetime, time
+from django.http import HttpResponseForbidden
+from django.core.cache import cache
+from django.http import JsonResponse
+from datetime import datetime
+
 
 class RequestLoggingMiddleware:
     def __init__(self, get_response):
@@ -22,8 +28,7 @@ class RequestLoggingMiddleware:
 
 # Task 2
 # middleware.py (continue or create if needed)
-from datetime import datetime, time
-from django.http import HttpResponseForbidden
+
 
 class RestrictAccessByTimeMiddleware:
     def __init__(self, get_response):
@@ -42,3 +47,45 @@ class RestrictAccessByTimeMiddleware:
             return HttpResponseForbidden("Access to the chat system is restricted to 6PM - 9PM only.")
 
         return self.get_response(request)
+
+
+# middleware.py
+
+class RateLimitMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.rate_limit = 5  # 5 messages
+        self.time_window = 60  # 60 seconds (1 minute)
+
+    def __call__(self, request):
+        # Only apply to POST requests to message API
+        if request.method == 'POST' and request.path.startswith('/api/messages'):
+            # Get IP address
+            ip = self.get_client_ip(request)
+            cache_key = f'msg_rate_{ip}'
+
+            # Retrieve current count from cache
+            history = cache.get(cache_key, [])
+            now = datetime.now().timestamp()
+
+            # Filter timestamps to keep only those in the last 60 seconds
+            history = [ts for ts in history if now - ts < self.time_window]
+
+            if len(history) >= self.rate_limit:
+                return JsonResponse(
+                    {"detail": "Rate limit exceeded. Max 5 messages per minute."},
+                    status=429
+                )
+
+            # Add current timestamp and update cache
+            history.append(now)
+            cache.set(cache_key, history, timeout=self.time_window)
+
+        return self.get_response(request)
+
+    def get_client_ip(self, request):
+        """Support X-Forwarded-For headers (e.g., behind reverse proxies)"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            return x_forwarded_for.split(',')[0]
+        return request.META.get('REMOTE_ADDR')
