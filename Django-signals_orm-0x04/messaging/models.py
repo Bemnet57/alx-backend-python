@@ -73,6 +73,9 @@ class Message(models.Model):
     edited = models.BooleanField(default=False)
     edited_by = models.ForeignKey(User, null=True, blank=True, related_name='edited_messages', on_delete=models.SET_NULL)
 
+    objects = models.Manager()  # Default manager
+    unread = UnreadMessagesManager()  # Custom manager, defined below
+
     def __str__(self):
         return f"{self.sender} → {self.receiver}: {self.content[:20]}"
 
