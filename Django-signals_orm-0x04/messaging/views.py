@@ -89,7 +89,7 @@ def delete_user(request):
 messages = (
     Message.objects
     .filter(parent_message__isnull=True)  # top-level messages only
-    .select_related('sender', 'receiver')
+    .select_related('sender=request.user', 'receiver')
     .prefetch_related('replies')  # fetch child replies efficiently
     .order_by('-timestamp')
 )
