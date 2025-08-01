@@ -44,15 +44,30 @@ class Conversation(models.Model):
         return f"Conversation {self.conversation_id}"
 
 
-class Message(models.Model):
-    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    message_body = models.TextField()
-    sent_at = models.DateTimeField(default=timezone.now)
+# class Message(models.Model):
+#     message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+#     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+#     message_body = models.TextField()
+#     sent_at = models.DateTimeField(default=timezone.now)
 
-    class Meta:
-        ordering = ['sent_at']
+#     class Meta:
+#         ordering = ['sent_at']
+
+#     def __str__(self):
+#         return f"Message {self.message_id} from {self.sender}"
+
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Message {self.message_id} from {self.sender}"
+        return f"{self.sender} → {self.receiver}: {self.content[:20]}"
+
