@@ -24,3 +24,24 @@ def log_message_edit(sender, instance, **kwargs):
                 old_content=old_instance.content
             )
             instance.edited = True
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_message(request, pk):
+    try:
+        message = Message.objects.get(pk=pk)
+    except Message.DoesNotExist:
+        return Response({'error': 'Message not found'}, status=404)
+
+    if request.user != message.sender:
+        return Response({'error': 'Unauthorized'}, status=403)
+
+    new_content = request.data.get('content')
+    if new_content and new_content != message.content:
+        message.content = new_content
+        message.edited = True
+        message.edited_by = request.user
+        message.save()
+
+    return Response({'message': 'Message updated successfully'})

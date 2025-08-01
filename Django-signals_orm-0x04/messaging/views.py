@@ -8,6 +8,11 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from rest_framework import viewsets, filters
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from messaging.models import Message
+
 
 class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
@@ -30,3 +35,31 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Message.objects.filter(conversation__participants=self.request.user)
     def perform_create(self, serializer):
         serializer.save(sender=self.request.user, conversation_id=self.kwargs['conversation_pk'])
+
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_message(request, pk):
+    try:
+        message = Message.objects.get(pk=pk)
+    except Message.DoesNotExist:
+        return Response({'error': 'Message not found'}, status=404)
+
+    # Only the sender is allowed to edit their message
+    if request.user != message.sender:
+        return Response({'error': 'You are not allowed to edit this message'}, status=403)
+
+    new_content = request.data.get('content')
+    if new_content is None:
+        return Response({'error': 'No new content provided'}, status=400)
+
+    # Only update if content actually changed
+    if new_content != message.content:
+        message.content = new_content
+        message.edited = True
+        message.edited_by = request.user  # 👈 Set the editor
+        message.save()
+        return Response({'message': 'Message updated successfully'})
+
+    return Response({'message': 'No changes detected'}, status=200)
