@@ -26,6 +26,28 @@ def log_message_edit(sender, instance, **kwargs):
             instance.edited = True
 
 
+
+# signals.py
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+from django.contrib.auth import get_user_model
+from .models import Message, Notification, MessageHistory
+
+User = get_user_model()
+
+@receiver(post_delete, sender=User)
+def delete_related_data(sender, instance, **kwargs):
+    # Delete all messages sent or received by the user
+    Message.objects.filter(sender=instance).delete()
+    Message.objects.filter(receiver=instance).delete()
+
+    # Delete all notifications for the user
+    Notification.objects.filter(user=instance).delete()
+
+    # Delete all message history entries for messages sent by the user
+    MessageHistory.objects.filter(message__sender=instance).delete()
+
+
 # @api_view(['PUT'])
 # @permission_classes([IsAuthenticated])
 # def update_message(request, pk):
