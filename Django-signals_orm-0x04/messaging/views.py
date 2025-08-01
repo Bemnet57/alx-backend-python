@@ -18,6 +18,9 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from messaging.models import Message
 from django.db.models import Prefetch
+from messaging.models import Message
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 
 
 
@@ -93,3 +96,9 @@ messages = (
     .prefetch_related('replies')  # fetch child replies efficiently
     .order_by('-timestamp')
 )
+
+
+@login_required
+def unread_inbox(request):
+    unread_messages = Message.unread.for_user(request.user)
+    return render(request, 'messaging/unread_inbox.html', {'unread_messages': unread_messages})

@@ -6,6 +6,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from .managers import UnreadMessagesManager
+
 
 
 # ENUM for roles
@@ -67,6 +69,7 @@ class Message(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     parent_message = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies') #to support replies/ self referencing FK
+    read = models.BooleanField(default=False)
     edited = models.BooleanField(default=False)
     edited_by = models.ForeignKey(User, null=True, blank=True, related_name='edited_messages', on_delete=models.SET_NULL)
 
