@@ -16,6 +16,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from messaging.models import Message
+from django.db.models import Prefetch
 
 
 
@@ -79,3 +81,15 @@ def delete_user(request):
     user = request.user
     user.delete()
     return Response({"message": "Your account has been deleted."}, status=204)
+
+
+# views.py or wherever we're fetching messages
+
+# Example: Get all top-level messages with their replies
+messages = (
+    Message.objects
+    .filter(parent_message__isnull=True)  # top-level messages only
+    .select_related('sender', 'receiver')
+    .prefetch_related('replies')  # fetch child replies efficiently
+    .order_by('-timestamp')
+)
