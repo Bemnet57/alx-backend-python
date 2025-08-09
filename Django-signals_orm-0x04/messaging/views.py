@@ -11,18 +11,17 @@ from rest_framework import viewsets, filters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from messaging.models import Message
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from messaging.models import Message
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from messaging.models import Message
-
-
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator  # if using class-based views
+from django.shortcuts import render, get_object_or_404
 
 
 
@@ -105,12 +104,6 @@ def unread_inbox(request):
     unread_messages = Message.unread.unread_for_user(request.user)
     return render(request, 'messaging/unread_inbox.html', {'unread_messages': unread_messages})
 
-# messaging/views.py
-
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator  # if using class-based views
-from django.shortcuts import render, get_object_or_404
-from messaging.models import Message
 
 @cache_page(60)
 def conversation_view(request, conversation_id):
