@@ -1,0 +1,53 @@
+#!/bin/bash
+# kubctl-0x02 - Apply blue/green, verify, and inspect green logs
+
+set -euo pipefail
+
+NAMESPACE=default
+BLUE_DEPLOY=messaging-app-blue
+GREEN_DEPLOY=messaging-app-green
+
+echo ">>> Applying Services (shared + direct)"
+kubectl apply -n "$NAMESPACE" -f kubeservice.yaml
+
+echo ">>> Applying BLUE deployment"
+kubectl apply -n "$NAMESPACE" -f blue_deployment.yaml
+
+echo ">>> Applying GREEN deployment"
+kubectl apply -n "$NAMESPACE" -f green_deployment.yaml
+
+echo ">>> Waiting for BLUE rollout..."
+kubectl rollout status deployment/"$BLUE_DEPLOY" -n "$NAMESPACE"
+
+echo ">>> Waiting for GREEN rollout..."
+kubectl rollout status deployment/"$GREEN_DEPLOY" -n "$NAMESPACE"
+
+echo ">>> Current pods:"
+kubectl get pods -n "$NAMESPACE" -o wide
+
+echo ">>> Checking recent logs from GREEN pods (look for errors)..."
+GREEN_PODS=$(kubectl get pods -n "$NAMESPACE" -l app=messaging-app,version=green -o jsonpath='{.items[*].metadata.name}')
+
+if [ -z "$GREEN_PODS" ]; then
+  echo "No GREEN pods found."
+  exit 1
+fi
+
+ERROR_FOUND=0
+for p in $GREEN_PODS; do
+  echo "----- logs: $p -----"
+  kubectl logs -n "$NAMESPACE" "$p" --tail=200 || true
+  # Simple error sniff (optional)
+  if kubectl logs -n "$NAMESPACE" "$p" --tail=200 | grep -Ei 'error|traceback|exception' >/dev/null; then
+    ERROR_FOUND=1
+  fi
+done
+
+if [ "$ERROR_FOUND" -eq 1 ]; then
+  echo ">>> ❌ Potential errors detected in GREEN logs."
+  exit 2
+else
+  echo ">>> ✅ No obvious errors found in GREEN logs."
+fi
+
+echo ">>> Done."
