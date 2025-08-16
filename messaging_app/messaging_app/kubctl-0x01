@@ -1,0 +1,32 @@
+#!/bin/bash
+# kubctl-0x01 - Scale Django app and test load
+
+set -e
+
+DEPLOYMENT_NAME=messaging-app-deployment
+SERVICE_NAME=messaging-app-service
+NAMESPACE=default
+
+echo ">>> Scaling $DEPLOYMENT_NAME to 3 replicas..."
+kubectl scale deployment $DEPLOYMENT_NAME --replicas=3 -n $NAMESPACE
+
+echo ">>> Waiting for pods to be ready..."
+kubectl rollout status deployment/$DEPLOYMENT_NAME -n $NAMESPACE
+
+echo ">>> Current running pods:"
+kubectl get pods -n $NAMESPACE -o wide
+
+echo ">>> Port-forwarding Django service to localhost:8000..."
+kubectl port-forward service/$SERVICE_NAME 8000:8000 -n $NAMESPACE &
+PORT_FORWARD_PID=$!
+sleep 5  # give it time to establish
+
+echo ">>> Running load test with wrk (10s, 100 connections, 4 threads)..."
+wrk -t4 -c100 -d10s http://127.0.0.1:8000/ || echo "wrk not installed, skipping load test"
+
+echo ">>> Monitoring resource usage..."
+kubectl top pods -n $NAMESPACE || echo "metrics-server not installed, skipping resource usage"
+
+# Cleanup port-forward
+kill $PORT_FORWARD_PID
+echo ">>> Done ✅"
