@@ -4,7 +4,7 @@ __pycache__/
 
 # Environment Variables
 .env
-
+messaging_app/.env
 # Virtual Environments
 .venv/
 env/
