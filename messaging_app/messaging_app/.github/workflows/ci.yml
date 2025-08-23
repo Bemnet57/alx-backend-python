@@ -48,16 +48,30 @@ jobs:
           . venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install flake8 coverage pytest-cov
 
-      - name: Run Django tests
+      - name: Run flake8 Linting
+        run: |
+          . venv/bin/activate
+          flake8 messaging_app
+          
+      - name: Run Django tests with coverage
         run: |
           . venv/bin/activate
           export DATABASE_URL="mysql://$MYSQL_USER:$MYSQL_PASSWORD@$MYSQL_HOST:$MYSQL_PORT/$MYSQL_DATABASE"
-          pytest --junitxml=report.xml
+          coverage run -m pytest messaging_app
+          coverage xml -o coverage.xml
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: test-report
-          path: report.xml
+          path: coverage.xml
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-html
+          path: htmlcov/
