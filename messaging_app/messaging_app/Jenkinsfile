@@ -1,50 +1,95 @@
 pipeline {
     agent any
 
-    environment {
-        // Path to Python virtualenv (ShiningPanda will handle it)
-        PYTHON_ENV = 'venv'
-    }
-
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/<your-username>/alx-backend-python.git',
+                    url: 'https://github.com/Bemnet57/alx-backend-python.git',
                     credentialsId: 'github-creds'
             }
         }
 
-        stage('Setup Python') {
+        stage('Install Dependencies') {
             steps {
-                // ShiningPanda plugin: create & use virtualenv with Python 3
-                withPythonEnv('/usr/bin/python3') {
-                    sh '''
-                        pip install --upgrade pip
-                        pip install -r messaging_app/requirements.txt
-                    '''
-                }
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip3 install --upgrade pip
+                    pip3 install -r messaging_app/requirements.txt
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                withPythonEnv('/usr/bin/python3') {
-                    sh '''
-                        cd messaging_app
-                        pytest --junitxml=report.xml
-                    '''
-                }
+                sh '''
+                    . venv/bin/activate
+                    pytest messaging_app --junitxml=report.xml
+                '''
             }
             post {
                 always {
-                    junit 'messaging_app/report.xml'
+                    junit 'report.xml'
                 }
             }
         }
     }
 
     triggers {
-        // Manual trigger (no SCM polling, no webhooks)
+        // Manual trigger only
     }
 }
+
+
+
+// pipeline {
+//     agent any
+
+//     environment {
+//         // Path to Python virtualenv (ShiningPanda will handle it)
+//         PYTHON_ENV = 'venv'
+//     }
+
+//     stages {
+//         stage('Checkout') {
+//             steps {
+//                 git branch: 'main',
+//                     url: 'https://github.com/<your-username>/alx-backend-python.git',
+//                     credentialsId: 'github-creds'
+//             }
+//         }
+
+//         stage('Setup Python') {
+//             steps {
+//                 // ShiningPanda plugin: create & use virtualenv with Python 3
+//                 withPythonEnv('/usr/bin/python3') {
+//                     sh '''
+//                         pip install --upgrade pip
+//                         pip install -r messaging_app/requirements.txt
+//                     '''
+//                 }
+//             }
+//         }
+
+//         stage('Run Tests') {
+//             steps {
+//                 withPythonEnv('/usr/bin/python3') {
+//                     sh '''
+//                         cd messaging_app
+//                         pytest --junitxml=report.xml
+//                     '''
+//                 }
+//             }
+//             post {
+//                 always {
+//                     junit 'messaging_app/report.xml'
+//                 }
+//             }
+//         }
+//     }
+
+//     triggers {
+//         // Manual trigger (no SCM polling, no webhooks)
+//     }
+// }
