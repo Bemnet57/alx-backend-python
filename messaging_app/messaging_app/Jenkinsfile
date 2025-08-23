@@ -35,11 +35,8 @@ pipeline {
             }
         }
     }
-
-    triggers {
-        // Manual trigger only
-    }
 }
+
 
 
 
